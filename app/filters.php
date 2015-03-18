@@ -88,3 +88,58 @@ Route::filter('csrf', function()
 		throw new Illuminate\Session\TokenMismatchException;
 	}
 });
+
+
+//->can("manage_posts");
+
+/*
+|--------------------------------------------------------------------------
+| Permission filters
+|--------------------------------------------------------------------------
+|
+| The following filters are used to verify if a user has certain 
+| permissions to execute a task so may have acces to a route.
+|
+*/
+
+Route::filter('recipes.create', function()
+{
+
+	if (Auth::guest())
+	{
+		return Redirect::guest('login');
+	}
+	else if ( ! Auth::user()->can('create_recipes') )
+	{
+		return Response::make('Unauthorized', 401);
+	}
+
+});
+
+Route::filter('recipes.edit', function()
+{
+
+	if (Auth::guest())
+	{
+		return Redirect::guest('login');
+	}
+	else if ( ! Auth::user()->can('edit_recipes') )
+	{
+		return Response::make('Unauthorized', 401);
+	}
+
+});
+
+Route::filter('recipes.delete', function()
+{
+
+	if (Auth::guest())
+	{
+		return Redirect::guest('login');
+	}
+	else if ( ! Auth::user()->can('delete_recipes') )
+	{
+		return Response::make('Unauthorized', 401);
+	}
+
+});

@@ -1,17 +1,64 @@
 <?php
 
+//Extended overview of application routes?
+//ssh to the project root directory and type "php artisan routes"
+
 /*
 |--------------------------------------------------------------------------
-| Application Routes
+| User Only Application Routes ( Require Authentication )
 |--------------------------------------------------------------------------
-|
-| Here is where you can register all of the routes for an application.
-| It's a breeze. Simply tell Laravel the URIs it should respond to
-| and give it the Closure to execute when that URI is requested.
-|
 */
 
-Route::get('/', function()
+Route::group(array('before' => 'auth'), function()
 {
-	return View::make('hello');
+
+    //Logout and redirect
+    Route::get('/logout', 'UserController@logout');
+
+    //Only if user has certain permissions ( = current "manager" userrole )
+    Route::group(array('before' => 'recipes.create|recipes.edit|recipes.delete'), function()
+    {
+        //Creates routes to create and manage recipes
+        Route::resource('recipe', 'RecipeController',
+                    array('except' => array('index')));
+    });
+
+    //Only if user has certain permissions ( = current "creator" userrole )
+    Route::group(array('before' => 'recipes.create'), function()
+    {
+        //Creates routes to manage recipes
+        Route::resource('recipe', 'RecipeController',
+                    array('only' => array('create', 'store')));
+    });        
+
+});
+
+/*
+|--------------------------------------------------------------------------
+| Public Application Routes
+|--------------------------------------------------------------------------
+*/
+
+//Displays the welcome page
+Route::get('/', 'PageController@show');
+
+//Creates routes for /recipe and /recipe/{recipeUrl}
+Route::resource('recipe', 'RecipeController',
+                array('only' => array('index')));
+
+/*
+|--------------------------------------------------------------------------
+| Guest Only Application Routes ( Forbidden when logged in )
+|--------------------------------------------------------------------------
+*/
+
+Route::group(array('before' => 'guest'), function()
+{
+
+    //Display user login form
+    Route::get('/login', 'UserController@login');
+
+    //Handle's user login form
+    Route::post('/login', array('before' => 'csrf', 'uses' => 'UserController@authenticate'));
+
 });
